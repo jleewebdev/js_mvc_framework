@@ -24,6 +24,11 @@ function ModelConstructor(options) {
       return this.attributes[key];
     },
 
+    remove: function(key) {
+      delete this.attributes[key];
+      this.triggerChange();
+    },
+
     triggerChange: function() {
       this.__events.forEach(function(cb) {
         cb();
@@ -38,4 +43,45 @@ function ModelConstructor(options) {
 _.extend(Model.prototype, options);
 
 return Model;
+}
+
+function CollectionConstructor(options) {
+  function Collection(model_constructor) {
+    this.models = [];
+    this.model = model_constructor;
+  }
+
+  Collection.prototype = {
+    reset: function() {
+      this.models = [];
+    },
+
+    add: function(model) {
+      var old_model = _(this.models).findWhere({id: model.id}),
+          new_model;
+
+      if (old_model) { return old_model; }
+
+      new_model = new this.model(model);
+      this.models.push(new_model);
+
+      return new_model;
+    },
+
+    remove: function(model) {
+      model = _.isNumber(model) ? { id: model } : model;
+
+      var m = _(this.models).findWhere(model);
+
+      if (!m) { return };
+
+      this.models = this.models.filter(function(existing_m) {
+        return existing_m.attributes.id !== m.id;
+      });
+    }
+  };
+
+  _.extend(Collection.prototype, options);
+
+  return Collection;
 }
