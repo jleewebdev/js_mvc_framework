@@ -46,6 +46,7 @@ return Model;
 }
 
 function CollectionConstructor(options) {
+
   function Collection(model_constructor) {
     this.models = [];
     this.model = model_constructor;
@@ -78,6 +79,15 @@ function CollectionConstructor(options) {
       this.models = this.models.filter(function(existing_m) {
         return existing_m.attributes.id !== m.id;
       });
+    },
+
+    get: function(idx) {
+      return _(this.models).findWhere({ id: idx} );
+    },
+
+    set: function(models) {
+      this.reset();
+      models.forEach(this.add.bind(this));
     }
   };
 
