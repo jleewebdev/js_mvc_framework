@@ -40,6 +40,24 @@
       <a data-id="{{id}}" href="#">Remove</a>
     </script>
 
+    <script id="edit" type="text/x-handlebars">
+      <form action="" method="post">
+        <fieldset>
+          <dl>
+            <dt>Make:</dt>
+            <dd><input type="text" name="edit_make" value="{{make}}" /></dd>
+          </dl>
+          <dl>
+            <dt>Model:</dt>
+            <dd><input type="text" name="edit_model" value="{{model}}" /></dd>
+          </dl>
+        </fieldset>
+        <fieldset>
+          <input type="submit" value="Save" /><a href="#">Cancel</a>
+        </fieldset>
+      </form>
+    </script>
+
     <script src="javascripts/app.js"></script>
   </body>
 </html>

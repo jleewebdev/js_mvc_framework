@@ -8,12 +8,13 @@ function ModelConstructor(options) {
     self.id = id_count;
     self.attributes.id = id_count;
     if (options && options.change && _.isFunction(options.change)) {
-      this.__events.push(options.change);
+      self.__events.push(options.change);
     }
   }
 
   Model.prototype = {
     __events: [],
+    __remove: function() {},
 
     set: function(key, value) {
       this.attributes[key] = value;
@@ -74,8 +75,9 @@ function CollectionConstructor(options) {
 
       var m = _(this.models).findWhere(model);
 
-      if (!m) { return };
+      if (!m) { return; }
 
+      m.__remove();
       this.models = this.models.filter(function(existing_m) {
         return existing_m.attributes.id !== m.id;
       });
@@ -99,7 +101,10 @@ function CollectionConstructor(options) {
 function ViewConstructor(options){
   function View(model) {
     this.model = model;
+    this.model.addCallback(this.render.bind(this));
+    this.model__remove = this.remove.bind(this);
     this.model.view = this;
+    this.attributes["data-id"] = this.model.id;
     this.$el = $("<" + this.tag_name + " />", this.attributes);
     this.render();
   }
@@ -108,12 +113,35 @@ function ViewConstructor(options){
     tag_name: "div",
     attributes: {},
     template: function() {},
-
+    events: {},
     render: function() {
+      this.unbindEvents();
       this.$el.html(this.template(this.model.attributes));
+      this.bindEvents();
+      return this.$el;
+    },
+
+    bindEvents: function() {
+      var $el = this.$el,
+          event, selector, parts;
+      for (var prop in this.events) {
+        parts = prop.split(" ");
+        selector = parts.length > 1 ? parts.slice(1).join(" ") : undefined;
+        event = parts[0];
+        if (selector) {
+          $el.on(event + ".view", selector, this.events[prop].bind(this));
+        } else {
+          $el.on(event + ".view", this.events[prop].bind(this));
+        }
+      }
+    },
+
+    unbindEvents: function() {
+      this.$el.off(".view");
     },
 
     remove: function() {
+      this.unbindEvents();
       this.$el.remove();
     }
   };
